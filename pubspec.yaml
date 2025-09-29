@@ -1,11 +1,11 @@
-name: proportional_widget
-description: Allows proportional widget responsiveness
+name: proportional_design
+description: Allows proportional and responsive design
 version: 1.0.0
 #author: Matheus Perez <matheuslperez@gmail.com>
 homepage: https://github.com/matheusperez/proportional-widget
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,4 +16,4 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
-
+  uses-material-design: true
