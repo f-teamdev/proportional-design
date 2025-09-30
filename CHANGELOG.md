@@ -1,12 +1,8 @@
-## [2.0.0] - 2025-09-30
+## [1.0.0] - 2025-09-30
 
 ### 🎉 Major Update - Versão Melhorada
 
-**Breaking Changes:**
-
-- Nenhum! Totalmente compatível com código existente v1.0.0
-
-**Novos Recursos:**
+**Recursos:**
 
 ✅ **Detecção Inteligente de Dispositivos**
 
@@ -86,8 +82,6 @@ context.getProportionalWidth(200);
 // Novo: usar widgets proporcionais
 ProportionalContainer(width: 200, child: ...);
 ```
-
-## [1.0.0] - 2025-09-29
 
 - Versão inicial do package
 - Cálculos proporcionais básicos

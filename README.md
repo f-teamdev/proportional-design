@@ -1,11 +1,9 @@
-# Proportional Design v2.0
+# Proportional Design v1.0
 
 [![pub package](https://img.shields.io/pub/v/proportional_design.svg)](https://pub.dev/packages/proportional_design)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Um pacote Flutter avançado que fornece utilidades de design responsivo e dimensionamento proporcional com **estratégias adaptativas inteligentes**, seguindo os padrões do **Material Design 3**.
-
-## ✨ Novidades da v2.0
 
 ### 🎯 Destaques
 
@@ -22,7 +20,7 @@ Um pacote Flutter avançado que fornece utilidades de design responsivo e dimens
 
 ```yaml
 dependencies:
-  proportional_design: ^2.0.0
+  proportional_design: ^1.0.0
 ```
 
 ```bash
@@ -291,12 +289,6 @@ ProportionalLogger.setVerboseMode(true);
 3. **Configure na inicialização** para comportamento consistente
 4. **Teste em diferentes dispositivos** e orientações
 5. **Use breakpoints Material Design 3** ao invés de valores hardcoded
-
-## 🔄 Migração da v1.0
-
-### Sem Breaking Changes!
-
-Todo código v1.0 continua funcionando perfeitamente:
 
 ```dart
 // v1.0 - continua funcionando

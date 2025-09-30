@@ -1,8 +1,7 @@
 name: proportional_design
 description: Allows proportional and responsive design
 version: 1.0.0
-#author: Matheus Perez <matheuslperez@gmail.com>
-homepage: https://github.com/matheusperez/proportional-widget
+homepage: https://github.com/f-teamdev/proportional-design
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
