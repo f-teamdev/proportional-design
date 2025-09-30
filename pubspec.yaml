@@ -1,7 +1,9 @@
 name: proportional_design
-description: Allows proportional and responsive design
+description: A Flutter package for responsive design with proportional scaling, Material Design 3 breakpoints, and adaptive strategies for phones, tablets, and desktops.
 version: 1.0.0
 homepage: https://github.com/f-teamdev/proportional-design
+repository: https://github.com/f-teamdev/proportional-design
+issue_tracker: https://github.com/f-teamdev/proportional-design/issues
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
