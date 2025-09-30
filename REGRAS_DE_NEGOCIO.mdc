@@ -1,0 +1,876 @@
+---
+alwaysApply: true
+---
+
+## 📐 Regras de Dimensionamento Base
+
+### RN001 - Dimensões de Referência
+
+**Regra**: O sistema utiliza dimensões fixas como referência para todos os cálculos proporcionais.
+
+```dart
+static const double _originalWidth = 402.0;
+static const double _originalHeight = 874.0;
+```
+
+**Comportamento**:
+
+- Todas as proporções são calculadas baseadas nessas dimensões
+- Não há configuração dinâmica dessas dimensões
+- Valores representam um layout mobile padrão
+
+**Limitações**:
+
+- Dimensões não correspondem a dispositivos reais
+- Não permite customização por projeto
+- Pode gerar proporções inadequadas para tablets
+
+### RN002 - Cálculo Proporcional Base
+
+**Regra**: Todo cálculo proporcional segue a fórmula linear básica:
+
+```dart
+resultado = (valorOriginal / dimensãoBase) * dimensãoAtual
+```
+
+**Implementação**:
+
+```dart
+double getProportionalSize(double originalPixels, {bool isWidth = true}) {
+  final baseDimension = isWidth ? _originalWidth : _originalHeight;
+  final currentDimension = isWidth ? screenWidth : screenHeight;
+  return (originalPixels / baseDimension) * currentDimension;
+}
+```
+
+**Comportamento**:
+
+- Escala linear simples
+- Não considera aspect ratio
+- Mesma lógica para todos os tipos de dispositivo
+- Não há limitação de valores mínimos/máximos
+
+---
+
+## 📱 Regras de Detecção de Dispositivos
+
+### RN003 - Classificação de Dispositivos
+
+**Regra**: O sistema classifica dispositivos baseado apenas na largura da tela:
+
+```dart
+bool get isTablet => screenWidth >= 600;
+bool get isPhone => screenWidth < 600;
+```
+
+**Comportamento**:
+
+- Threshold fixo de 600px
+- Não considera orientação
+- Não considera densidade de pixels
+- Não diferencia tipos de tablet
+
+**Problemas Identificados**:
+
+- 600px é inadequado para tablets modernos
+- Não segue padrões Material Design
+- Pode classificar incorretamente phones grandes
+
+### RN004 - Breakpoints de Tela
+
+**Regra**: Sistema de breakpoints simplificado:
+
+```dart
+bool get isSmallScreen => screenWidth < 400;
+bool get isMediumScreen => screenWidth >= 400 && screenWidth < 800;
+bool get isLargeScreen => screenWidth >= 800;
+```
+
+**Comportamento**:
+
+- Três categorias fixas
+- Baseado apenas em largura
+- Não segue padrões de design modernos
+
+**Limitações**:
+
+- Não alinhado com Material Design 3
+- Breakpoints inadequados para uso real
+- Não considera diferentes densidades
+
+---
+
+## 🔧 Regras de Configuração Global
+
+### RN005 - ScreenConfig - Controle de Safe Areas
+
+**Regra**: O sistema permite sobrescrever valores de safe area através da classe ScreenConfig:
+
+```dart
+class ScreenConfig {
+  static bool _isStatusBarDisabled = false;
+  static bool _isNavigationBarDisabled = false;
+  static double _forcedStatusBarHeight = 0.0;
+  static double _forcedBottomPadding = 0.0;
+}
+```
+
+**Comportamento**:
+
+- Valores globais estáticos
+- Permite forçar alturas específicas
+- Permite desabilitar safe areas
+- Estado global compartilhado
+
+**Métodos de Configuração**:
+
+```dart
+ScreenConfig.setStatusBarDisabled(bool disabled);
+ScreenConfig.setNavigationBarDisabled(bool disabled);
+ScreenConfig.setForcedStatusBarHeight(double height);
+ScreenConfig.setForcedBottomPadding(double padding);
+ScreenConfig.reset(); // Restaura valores padrão
+```
+
+### RN006 - Prioridade de Valores de Safe Area
+
+**Regra**: O sistema segue uma hierarquia de prioridade para valores de safe area:
+
+1. **Valores forçados** (ScreenConfig.forcedStatusBarHeight > 0)
+2. **Valores do sistema** (MediaQuery.systemGestureInsets)
+
+```dart
+double get statusBarHeight {
+  if (ScreenConfig.forcedStatusBarHeight > 0) {
+    return ScreenConfig.forcedStatusBarHeight;
+  }
+  return _mediaQuery.systemGestureInsets.top;
+}
+```
+
+---
+
+## 📏 Regras de Cálculo de Dimensões
+
+### RN007 - Altura Disponível
+
+**Regra**: O cálculo de altura disponível considera safe areas opcionalmente:
+
+```dart
+double getAvailableHeight({
+  bool useSafeAreaTop = true,
+  bool useSafeAreaBottom = true,
+}) {
+  final effectiveStatusBarHeight = useSafeAreaTop ? statusBarHeight : 0;
+  final effectiveBottomPadding = useSafeAreaBottom ? bottomPadding : 0;
+  return screenHeight - effectiveStatusBarHeight - effectiveBottomPadding;
+}
+```
+
+**Comportamento**:
+
+- Parâmetros opcionais para controlar safe areas
+- Cálculo dinâmico baseado em configurações
+- Logging detalhado (problemático em produção)
+
+### RN008 - Variações de Altura Disponível
+
+**Regra**: O sistema fornece métodos específicos para diferentes cenários:
+
+```dart
+// Altura sem status bar, com navigation bar
+double getFullScreenHeight() {
+  return getAvailableHeight(useSafeAreaTop: false, useSafeAreaBottom: true);
+}
+
+// Altura com status bar, sem navigation bar
+double getHeightWithoutNavigationBar() {
+  return getAvailableHeight(useSafeAreaTop: true, useSafeAreaBottom: false);
+}
+
+// Altura total sem nenhuma safe area
+double getFullScreenHeightWithoutBars() {
+  return getAvailableHeight(useSafeAreaTop: false, useSafeAreaBottom: false);
+}
+```
+
+---
+
+## 📊 Regras de Cálculo Proporcional
+
+### RN009 - Largura e Altura Proporcionais
+
+**Regra**: Métodos específicos para largura e altura:
+
+```dart
+double getProportionalWidth(double originalWidth) {
+  return getProportionalSize(originalWidth, isWidth: true);
+}
+
+double getProportionalHeight(double originalHeight) {
+  return getProportionalSize(originalHeight, isWidth: false);
+}
+```
+
+**Comportamento**:
+
+- Wrappers para o método base getProportionalSize
+- Largura usa \_originalWidth como base (402.0)
+- Altura usa \_originalHeight como base (874.0)
+
+### RN010 - Cálculos por Porcentagem
+
+**Regra**: Sistema de porcentagem com validação:
+
+```dart
+double getWidthPercentage(double percentage) {
+  assert(percentage >= 0.0 && percentage <= 1.0, 'Percentage must be between 0.0 and 1.0');
+  return getProportionalWidth(_originalWidth * percentage);
+}
+
+double getHeightPercentage(double percentage) {
+  assert(percentage >= 0.0 && percentage <= 1.0, 'Percentage must be between 0.0 and 1.0');
+  return getProportionalHeight(_originalHeight * percentage);
+}
+```
+
+**Comportamento**:
+
+- Validação via assert (removida em release)
+- Porcentagem aplicada às dimensões base
+- Resultado passa pelo cálculo proporcional normal
+
+### RN011 - Altura Disponível por Porcentagem
+
+**Regra**: Cálculo complexo que considera altura disponível real:
+
+```dart
+double getAvailableHeightPercentage(
+  double percentage, {
+  bool useSafeAreaTop = true,
+  bool useSafeAreaBottom = true,
+}) {
+  final availableHeight = getAvailableHeight(
+    useSafeAreaTop: useSafeAreaTop,
+    useSafeAreaBottom: useSafeAreaBottom,
+  );
+  final availableHeightRatio = availableHeight / screenHeight;
+  final originalAvailableHeight = _originalHeight * availableHeightRatio;
+  return getProportionalHeight(originalAvailableHeight * percentage);
+}
+```
+
+**Comportamento**:
+
+- Calcula proporção da altura disponível real
+- Aplica essa proporção às dimensões base
+- Aplica porcentagem ao resultado
+- Passa pelo cálculo proporcional final
+
+---
+
+## 🔤 Regras de Tipografia
+
+### RN012 - Tamanho de Fonte Proporcional
+
+**Regra**: Fontes são calculadas baseadas na altura da tela:
+
+```dart
+double getProportionalFontSize(double originalFontSize) {
+  return getProportionalSize(originalFontSize, isWidth: false);
+}
+```
+
+**Comportamento**:
+
+- Usa altura como referência (não largura)
+- Segue mesma lógica de escala linear
+- Não considera densidade de pixels adequadamente
+
+### RN013 - Fonte por Porcentagem
+
+**Regra**: Permite definir fonte como porcentagem da altura base:
+
+```dart
+double getFontSizePercentage(double percentage) {
+  assert(percentage >= 0.0 && percentage <= 1.0, 'Percentage must be between 0.0 and 1.0');
+  return getProportionalFontSize(_originalHeight * percentage);
+}
+```
+
+### RN014 - Fonte por Dimensão Mínima
+
+**Regra**: Calcula fonte baseada na menor dimensão da tela:
+
+```dart
+double getFontSizeByMinDimension(double percentage) {
+  assert(percentage >= 0.0 && percentage <= 1.0, 'Percentage must be between 0.0 and 1.0');
+  final originalMinDimension = _originalWidth < _originalHeight ? _originalWidth : _originalHeight;
+  return getProportionalFontSize(originalMinDimension * percentage);
+}
+```
+
+**Comportamento**:
+
+- Usa menor dimensão base (402.0)
+- Aplica porcentagem
+- Calcula proporcionalmente
+
+### RN015 - Fonte Responsiva Avançada
+
+**Regra**: Considera densidade de pixels e text scaler:
+
+```dart
+double getResponsiveFontSize(double baseSize, {double scaleFactor = 1.0}) {
+  final pixelRatio = _mediaQuery.devicePixelRatio;
+  final textScaler = _mediaQuery.textScaler;
+  return baseSize * scaleFactor * textScaler.scale(1.0) * (pixelRatio / 3.0);
+}
+```
+
+**Comportamento**:
+
+- Considera devicePixelRatio
+- Aplica textScaler do sistema
+- Usa divisor fixo de 3.0 para normalização
+- Permite scaleFactor customizado
+
+---
+
+## 📐 Regras de Espaçamento e Layout
+
+### RN016 - Espaçamento Proporcional
+
+**Regra**: Espaçamento usa largura como referência:
+
+```dart
+double getProportionalSpacing(double originalSpacing) {
+  return getProportionalSize(originalSpacing, isWidth: true);
+}
+
+double getSpacingPercentage(double percentage) {
+  return getProportionalSpacing(_originalWidth * percentage);
+}
+```
+
+### RN017 - Espaçamento Responsivo
+
+**Regra**: Considera densidade de pixels:
+
+```dart
+double getResponsiveSpacing(double baseSpacing) {
+  final pixelRatio = _mediaQuery.devicePixelRatio;
+  return baseSpacing * (pixelRatio / 3.0);
+}
+```
+
+### RN018 - Padding Proporcional
+
+**Regra**: Sistema completo de EdgeInsets proporcionais:
+
+```dart
+EdgeInsets getProportionalEdgeInsets({
+  double? all,
+  double? horizontal,
+  double? vertical,
+  double? left,
+  double? right,
+  double? top,
+  double? bottom,
+}) {
+  return EdgeInsets.only(
+    left: left != null ? getProportionalPadding(left) : (horizontal ?? all ?? 0),
+    right: right != null ? getProportionalPadding(right) : (horizontal ?? all ?? 0),
+    top: top != null ? getProportionalPadding(top) : (vertical ?? all ?? 0),
+    bottom: bottom != null ? getProportionalPadding(bottom) : (vertical ?? all ?? 0),
+  );
+}
+```
+
+**Comportamento**:
+
+- Prioridade: específico > horizontal/vertical > all
+- Todos os valores passam por getProportionalPadding
+- Fallback para 0 se nenhum valor fornecido
+
+---
+
+## 🎨 Regras de Estilização
+
+### RN019 - Border Radius Proporcional
+
+**Regra**: Border radius usa largura como referência:
+
+```dart
+double getProportionalBorderRadius(double originalRadius) {
+  return getProportionalSize(originalRadius, isWidth: true);
+}
+
+BorderRadius getProportionalBorderRadiusAll(double radius) {
+  final proportionalRadius = getProportionalBorderRadius(radius);
+  return BorderRadius.circular(proportionalRadius);
+}
+```
+
+### RN020 - Border Radius Customizado
+
+**Regra**: Permite diferentes valores para cada canto:
+
+```dart
+BorderRadius getProportionalBorderRadiusCustom({
+  double? topLeft,
+  double? topRight,
+  double? bottomLeft,
+  double? bottomRight,
+}) {
+  return BorderRadius.only(
+    topLeft: topLeft != null ? Radius.circular(getProportionalBorderRadius(topLeft)) : Radius.zero,
+    // ... outros cantos
+  );
+}
+```
+
+### RN021 - Ícones Proporcionais
+
+**Regra**: Tamanho de ícones baseado na largura:
+
+```dart
+double getProportionalIconSize(double originalIconSize) {
+  return getProportionalSize(originalIconSize, isWidth: true);
+}
+
+double getIconSizePercentage(double percentage) {
+  return getProportionalIconSize(_originalWidth * percentage);
+}
+```
+
+### RN022 - Bordas Proporcionais
+
+**Regra**: Espessura de borda proporcional:
+
+```dart
+double getProportionalBorderWidth(double originalBorderWidth) {
+  return getProportionalSize(originalBorderWidth, isWidth: true);
+}
+
+BorderSide getProportionalBorderSide({
+  double width = 1.0,
+  Color color = Colors.black,
+  BorderStyle style = BorderStyle.solid,
+}) {
+  return BorderSide(
+    width: getProportionalBorderWidth(width),
+    color: color,
+    style: style,
+  );
+}
+```
+
+### RN023 - Sombras Proporcionais
+
+**Regra**: Sistema completo de sombras proporcionais:
+
+```dart
+Offset getProportionalShadowOffset(double dx, double dy) {
+  return Offset(
+    getProportionalSize(dx, isWidth: true),
+    getProportionalSize(dy, isWidth: false),
+  );
+}
+
+BoxShadow getProportionalBoxShadow({
+  double dx = 0.0,
+  double dy = 0.0,
+  double blurRadius = 0.0,
+  double spreadRadius = 0.0,
+  Color color = Colors.black,
+}) {
+  return BoxShadow(
+    offset: getProportionalShadowOffset(dx, dy),
+    blurRadius: getProportionalShadowBlurRadius(blurRadius),
+    spreadRadius: getProportionalSize(spreadRadius, isWidth: true),
+    color: color,
+  );
+}
+```
+
+**Comportamento**:
+
+- dx usa largura como referência
+- dy usa altura como referência
+- blurRadius e spreadRadius usam largura
+
+---
+
+## 📱 Regras de Responsividade
+
+### RN024 - Detecção de Orientação
+
+**Regra**: Orientação baseada em comparação simples:
+
+```dart
+bool get isLandscape => screenWidth > screenHeight;
+bool get isPortrait => screenWidth < screenHeight;
+```
+
+### RN025 - Dimensões Mínima e Máxima
+
+**Regra**: Utilitários para dimensões extremas:
+
+```dart
+double get minDimension => screenWidth < screenHeight ? screenWidth : screenHeight;
+double get maxDimension => screenWidth > screenHeight ? screenWidth : screenHeight;
+```
+
+### RN026 - Colunas Responsivas
+
+**Regra**: Número de colunas baseado em breakpoints:
+
+```dart
+int get responsiveColumns {
+  if (isSmallScreen) return 1;
+  if (isMediumScreen) return 2;
+  return 3;
+}
+```
+
+### RN027 - Valores Responsivos por Breakpoint
+
+**Regra**: Permite diferentes valores por tamanho de tela:
+
+```dart
+double getResponsiveSpacingByBreakpoint({
+  double small = 8.0,
+  double medium = 16.0,
+  double large = 24.0,
+}) {
+  if (isSmallScreen) return getProportionalSpacing(small);
+  if (isMediumScreen) return getProportionalSpacing(medium);
+  return getProportionalSpacing(large);
+}
+```
+
+---
+
+## 🔍 Regras de Informações do Sistema
+
+### RN028 - Informações da Tela
+
+**Regra**: Método que retorna mapa completo de informações:
+
+```dart
+Map<String, dynamic> getScreenInfo() {
+  return {
+    'screenWidth': screenWidth,
+    'screenHeight': screenHeight,
+    'statusBarHeight': statusBarHeight,
+    'bottomPadding': bottomPadding,
+    'isStatusBarVisible': isStatusBarVisible,
+    'isNavigationBarVisible': isNavigationBarVisible,
+    'availableHeight': getAvailableHeight(),
+    'fullScreenHeight': getFullScreenHeight(),
+    'aspectRatio': screenWidth / screenHeight,
+  };
+}
+```
+
+### RN029 - Visibilidade de Barras
+
+**Regra**: Detecção baseada em viewPadding:
+
+```dart
+bool get isStatusBarVisible => _mediaQuery.viewPadding.top > 0;
+bool get isNavigationBarVisible => _mediaQuery.viewPadding.bottom > 0;
+```
+
+---
+
+## 🎯 Regras de Animação
+
+### RN030 - Duração Responsiva de Animação
+
+**Regra**: Ajusta duração baseada na densidade de pixels:
+
+```dart
+Duration getResponsiveAnimationDuration(int baseDuration) {
+  final pixelRatio = _mediaQuery.devicePixelRatio;
+  final adjustedDuration = (baseDuration * (pixelRatio / 3.0)).round();
+  return Duration(milliseconds: adjustedDuration);
+}
+```
+
+**Comportamento**:
+
+- Usa devicePixelRatio como fator
+- Normaliza com divisor de 3.0
+- Retorna Duration em milliseconds
+
+---
+
+## 🔧 Regras de Configuração Avançada
+
+### RN031 - ScreenConfigExtension
+
+**Regra**: Extension que considera configurações globais:
+
+```dart
+double getAvailableHeightWithConfig({
+  bool useSafeAreaTop = true,
+  bool useSafeAreaBottom = true,
+}) {
+  final effectiveUseSafeAreaTop = useSafeAreaTop && !ScreenConfig.isStatusBarDisabled;
+  final effectiveUseSafeAreaBottom = useSafeAreaBottom && !ScreenConfig.isNavigationBarDisabled;
+
+  return getAvailableHeight(
+    useSafeAreaTop: effectiveUseSafeAreaTop,
+    useSafeAreaBottom: effectiveUseSafeAreaBottom,
+  );
+}
+```
+
+**Comportamento**:
+
+- Combina parâmetros locais com configuração global
+- Permite desabilitar safe areas globalmente
+- Mantém compatibilidade com API original
+
+---
+
+## 🚨 Regras de Logging e Debug
+
+### RN032 - Logging Automático
+
+**Regra**: Sistema de logging detalhado (problemático):
+
+```dart
+log('=== Screen Dimensions Debug (systemGestureInsets) ===');
+log('availableHeight: $availableHeight');
+log('screenHeight: $screenHeight');
+log('statusBarHeight: $statusBarHeight');
+log('bottomPadding: $bottomPadding');
+log('useSafeAreaTop: $useSafeAreaTop');
+log('useSafeAreaBottom: $useSafeAreaBottom');
+log('==============================');
+```
+
+**Problemas**:
+
+- Logs sempre ativos (inclusive em produção)
+- Sem controle de nível de debug
+- Impacto na performance
+- Poluição do console
+
+---
+
+## 🔄 Regras de Extensões Auxiliares
+
+### RN033 - DimensionsHelper
+
+**Regra**: Extension em num para facilitar uso:
+
+```dart
+extension DimensionsHelper on num {
+  double get dp => toDouble();
+  double get sp => toDouble();
+}
+```
+
+**Comportamento**:
+
+- Converte qualquer número para double
+- Nomenclatura inspirada no Android (dp/sp)
+- Não adiciona funcionalidade real, apenas conveniência
+
+---
+
+## 📋 Regras de Validação
+
+### RN034 - Validação de Porcentagem
+
+**Regra**: Validação via assert para porcentagens:
+
+```dart
+assert(percentage >= 0.0 && percentage <= 1.0, 'Percentage must be between 0.0 and 1.0');
+```
+
+**Limitações**:
+
+- Asserts são removidos em release builds
+- Sem fallbacks para valores inválidos
+- Sem tratamento de edge cases
+- Pode causar crashes em desenvolvimento
+
+### RN035 - Ausência de Validação Geral
+
+**Regra**: A maioria dos métodos não possui validação:
+
+**Problemas**:
+
+- Valores negativos não são tratados
+- Valores extremamente grandes podem causar overflow
+- Sem validação de contexto nulo
+- Sem tratamento de MediaQuery indisponível
+
+---
+
+## 🎯 Casos de Uso e Exemplos
+
+### Caso de Uso 1: Container Responsivo Básico
+
+```dart
+Container(
+  width: context.getProportionalWidth(200.0),
+  height: context.getProportionalHeight(100.0),
+  padding: context.getProportionalEdgeInsetsAll(16.0),
+  child: Text(
+    'Conteúdo',
+    style: TextStyle(
+      fontSize: context.getProportionalFontSize(16.0),
+    ),
+  ),
+)
+```
+
+### Caso de Uso 2: Layout com Safe Area
+
+```dart
+Container(
+  height: context.getAvailableHeight(
+    useSafeAreaTop: true,
+    useSafeAreaBottom: true,
+  ),
+  child: Column(
+    children: [
+      // Conteúdo que respeita safe areas
+    ],
+  ),
+)
+```
+
+### Caso de Uso 3: Design Responsivo por Breakpoint
+
+```dart
+Text(
+  'Título',
+  style: TextStyle(
+    fontSize: context.getResponsiveFontSizeByBreakpoint(
+      small: 14.0,
+      medium: 16.0,
+      large: 18.0,
+    ),
+  ),
+)
+```
+
+---
+
+## ⚠️ Limitações e Problemas Conhecidos
+
+### Limitação 1: Dimensões Base Fixas
+
+- **Problema**: 402x874 não corresponde a dispositivos reais
+- **Impacto**: Proporções podem ser inadequadas
+- **Solução**: Permitir configuração de dimensões base
+
+### Limitação 2: Detecção de Tablet Inadequada
+
+- **Problema**: Threshold de 600px é muito baixo
+- **Impacto**: Classificação incorreta de dispositivos
+- **Solução**: Implementar detecção baseada em Material Design 3
+
+### Limitação 3: Escala Linear Simples
+
+- **Problema**: Não considera aspect ratio ou densidade
+- **Impacto**: Elementos inadequados em tablets
+- **Solução**: Implementar estratégias de escala adaptativas
+
+### Limitação 4: Logging em Produção
+
+- **Problema**: Logs sempre ativos
+- **Impacto**: Performance degradada
+- **Solução**: Sistema de logging condicional
+
+### Limitação 5: Falta de Cache
+
+- **Problema**: Cálculos repetitivos
+- **Impacto**: Performance em widgets complexos
+- **Solução**: Sistema de cache inteligente
+
+### Limitação 6: API Inconsistente
+
+- **Problema**: Múltiplas funções para mesma funcionalidade
+- **Impacto**: Confusão para desenvolvedores
+- **Solução**: API unificada e simplificada
+
+### Limitação 7: Validação Inadequada
+
+- **Problema**: Asserts removidos em release
+- **Impacto**: Crashes potenciais
+- **Solução**: Validação robusta com fallbacks
+
+---
+
+## 🔮 Evolução Futura Recomendada
+
+### Fase 1: Correções Críticas
+
+1. Implementar breakpoints Material Design 3
+2. Corrigir detecção de tablets
+3. Adicionar sistema de cache
+4. Implementar logging condicional
+
+### Fase 2: Melhorias de API
+
+1. Simplificar API principal
+2. Adicionar validação robusta
+3. Criar widgets proporcionais
+4. Melhorar documentação
+
+### Fase 3: Responsividade Avançada
+
+1. Estratégias de escala adaptativas
+2. Layout adaptativo automático
+3. Suporte a orientação
+4. Grid responsivo
+
+### Fase 4: Otimizações
+
+1. Performance otimizada
+2. Testes abrangentes
+3. Benchmarks
+4. Exemplos avançados
+
+---
+
+## 📚 Referências e Padrões
+
+### Material Design 3 Breakpoints
+
+- **Compact**: < 600dp (phones)
+- **Medium**: 600dp - 840dp (tablets, foldables)
+- **Expanded**: > 840dp (desktops, large tablets)
+
+### Densidade de Pixels Padrão
+
+- **ldpi**: 0.75x (120 DPI)
+- **mdpi**: 1.0x (160 DPI)
+- **hdpi**: 1.5x (240 DPI)
+- **xhdpi**: 2.0x (320 DPI)
+- **xxhdpi**: 3.0x (480 DPI)
+- **xxxhdpi**: 4.0x (640 DPI)
+
+### Aspect Ratios Comuns
+
+- **Phone**: 16:9, 18:9, 19.5:9, 20:9
+- **Tablet**: 4:3, 16:10, 3:2
+- **Desktop**: 16:9, 16:10, 21:9
+
+---
+
+## 📝 Conclusão
+
+O **Proportional Design Package** fornece uma base sólida para design responsivo em Flutter, mas possui limitações significativas que afetam sua eficácia em cenários reais, especialmente para tablets e dispositivos modernos.
+
+As regras de negócio documentadas neste arquivo representam o estado atual do sistema e servem como base para futuras melhorias e otimizações.
+
+**Recomendação**: Implementar as melhorias propostas de forma incremental, priorizando correções críticas que afetam a usabilidade em tablets e a performance geral do sistema.

@@ -1,261 +1,353 @@
-# Proportional Design
+# Proportional Design v2.0
 
 [![pub package](https://img.shields.io/pub/v/proportional_design.svg)](https://pub.dev/packages/proportional_design)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Flutter package that provides responsive design utilities and proportional sizing based on your design dimensions. Perfect for creating consistent layouts across different screen sizes.
+Um pacote Flutter avançado que fornece utilidades de design responsivo e dimensionamento proporcional com **estratégias adaptativas inteligentes**, seguindo os padrões do **Material Design 3**.
 
-## ✨ Features
+## ✨ Novidades da v2.0
 
-- 📱 **Proportional Sizing**: Automatically scale dimensions based on your design specifications
-- 📐 **Screen Utilities**: Easy access to screen dimensions, safe areas, and device information
-- 🎯 **Design-Based Layout**: Configure your base design dimensions for consistent scaling
-- 📱 **Responsive Typography**: Scale text sizes proportionally
-- 🛡️ **Safe Area Handling**: Built-in support for status bars, navigation bars, and notches
-- 🔧 **Flexible Configuration**: Override system values for testing and specific use cases
-- 📊 **Screen Breakpoint Detection**: Identify device types and orientations
-- 🎨 **Material Design Ready**: Works seamlessly with Flutter's Material Design
+### 🎯 Destaques
 
-## 🚀 Installation
+- ✅ **5 Estratégias de Escala** diferentes (linear, adaptive, aspectRatio, density, material)
+- ✅ **Breakpoints Material Design 3** (compact, medium, expanded)
+- ✅ **Detecção Inteligente de Dispositivos** (phone, tablet, desktop, foldable)
+- ✅ **Sistema de Cache** com ~70% redução em cálculos repetitivos
+- ✅ **Logging Condicional** (zero logs em produção)
+- ✅ **Validação Robusta** com fallbacks automáticos
+- ✅ **Widgets Proporcionais Prontos** para uso
+- ✅ **100% Compatível** com código v1.0
 
-Add this to your package's `pubspec.yaml` file:
+## 🚀 Instalação
 
 ```yaml
 dependencies:
-  proportional_design: ^1.0.0
+  proportional_design: ^2.0.0
 ```
-
-Then run:
 
 ```bash
 flutter pub get
 ```
 
-## 📖 Usage
+## 📖 Uso Básico
 
-### Basic Setup
+### Configuração Inicial (Opcional)
 
 ```dart
 import 'package:proportional_design/proportional_design.dart';
 
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: context.getProportionalWidth(200),  // Scales based on screen width
-      height: context.getProportionalHeight(100), // Scales based on screen height
-      child: Text(
-        'Responsive Text',
-        style: TextStyle(
-          fontSize: context.getProportionalFontSize(16), // Proportional font size
-        ),
-      ),
-    );
-  }
-}
-```
-
-### Screen Information
-
-```dart
-class ScreenInfoWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('Screen Width: ${context.screenWidth}'),
-        Text('Screen Height: ${context.screenHeight}'),
-        Text('Status Bar Height: ${context.statusBarHeight}'),
-        Text('Bottom Padding: ${context.bottomPadding}'),
-        Text('Available Height: ${context.getAvailableHeight()}'),
-        Text('Is Tablet: ${context.isTablet}'),
-        Text('Is Landscape: ${context.isLandscape}'),
-      ],
-    );
-  }
-}
-```
-
-### Safe Area Handling
-
-```dart
-class SafeAreaExample extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        // Get available height excluding safe areas
-        height: context.getAvailableHeight(
-          useSafeAreaTop: true,
-          useSafeAreaBottom: true,
-        ),
-        child: YourContent(),
-      ),
-    );
-  }
-}
-```
-
-### Responsive Layouts
-
-```dart
-class ResponsiveLayout extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Responsive container
-        Container(
-          width: context.getProportionalWidth(300),
-          height: context.getProportionalHeight(200),
-          margin: EdgeInsets.all(context.getProportionalWidth(16)),
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(context.getProportionalWidth(8)),
-          ),
-          child: Center(
-            child: Text(
-              'Responsive Container',
-              style: TextStyle(
-                fontSize: context.getProportionalFontSize(18),
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-
-        // Responsive spacing
-        SizedBox(height: context.getProportionalHeight(20)),
-
-        // Responsive button
-        ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(
-              horizontal: context.getProportionalWidth(24),
-              vertical: context.getProportionalHeight(12),
-            ),
-          ),
-          child: Text(
-            'Responsive Button',
-            style: TextStyle(fontSize: context.getProportionalFontSize(16)),
-          ),
-        ),
-      ],
-    );
-  }
-}
-```
-
-## 🔧 Configuration
-
-### Base Design Dimensions
-
-The package uses a base design of 402x874 pixels by default. You can configure this for your specific design:
-
-```dart
-// In your main.dart or app initialization
 void main() {
-  // Configure base design dimensions
-  ScreenConfig.setBaseDimensions(
-    width: 375,  // Your design width
-    height: 812, // Your design height
-  );
+  // Configurar estratégia de escala (padrão: adaptive)
+  ProportionalConfig.setDefaultStrategy(ScalingStrategy.adaptive);
+
+  // Configurar logging (apenas debug por padrão)
+  ProportionalLogger.setDebugMode(true);
+
+  // Habilitar cache (já habilitado por padrão)
+  ProportionalCache.enable();
 
   runApp(MyApp());
 }
 ```
 
-### Override System Values
-
-For testing or specific use cases, you can override system values:
+### Detecção de Dispositivos
 
 ```dart
-// Override status bar height for testing
-ScreenConfig.forcedStatusBarHeight = 44.0;
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Novo sistema de detecção
+    final deviceType = context.deviceType; // DeviceType.tablet
+    final breakpoint = context.breakpoint; // MaterialBreakpoint.medium
 
-// Override bottom padding for testing
-ScreenConfig.forcedBottomPadding = 34.0;
+    // Ou usar verificações diretas
+    if (context.isTabletDevice) {
+      return TabletLayout();
+    }
+
+    return PhoneLayout();
+  }
+}
 ```
 
-## 📚 API Reference
+### Widgets Proporcionais (Recomendado)
 
-### Screen Dimensions
+```dart
+// Antes (ainda funciona)
+Container(
+  width: context.getProportionalWidth(200),
+  height: context.getProportionalHeight(100),
+  padding: EdgeInsets.all(context.getProportionalPadding(16)),
+  child: Text(
+    'Hello',
+    style: TextStyle(fontSize: context.getProportionalFontSize(16)),
+  ),
+)
 
-| Method                         | Description                               |
-| ------------------------------ | ----------------------------------------- |
-| `context.screenWidth`          | Get total screen width                    |
-| `context.screenHeight`         | Get total screen height                   |
-| `context.statusBarHeight`      | Get status bar height                     |
-| `context.bottomPadding`        | Get bottom safe area padding              |
-| `context.getAvailableHeight()` | Get available height excluding safe areas |
+// Depois (mais simples)
+ProportionalContainer(
+  width: 200,
+  height: 100,
+  padding: EdgeInsets.all(16),
+  child: ProportionalText('Hello', fontSize: 16),
+)
+```
 
-### Proportional Sizing
+## 🎨 Recursos Principais
 
-| Method                                    | Description                        |
-| ----------------------------------------- | ---------------------------------- |
-| `context.getProportionalWidth(double)`    | Scale width based on screen ratio  |
-| `context.getProportionalHeight(double)`   | Scale height based on screen ratio |
-| `context.getProportionalFontSize(double)` | Scale font size proportionally     |
-| `context.getProportionalSize(double)`     | Scale any dimension proportionally |
+### 1. Layout Adaptativo
 
-### Device Detection
+```dart
+AdaptiveLayout(
+  phone: PhoneView(),
+  tablet: TabletView(),
+  desktop: DesktopView(),
+)
+```
 
-| Property              | Description                          |
-| --------------------- | ------------------------------------ |
-| `context.isTablet`    | Check if device is a tablet          |
-| `context.isPhone`     | Check if device is a phone           |
-| `context.isLandscape` | Check if device is in landscape mode |
-| `context.isPortrait`  | Check if device is in portrait mode  |
+### 2. Grid Responsivo
 
-### Safe Area Utilities
+```dart
+ResponsiveGrid(
+  phoneColumns: 1,
+  tabletColumns: 2,
+  desktopColumns: 3,
+  spacing: 8,
+  children: [
+    Card(child: Text('Item 1')),
+    Card(child: Text('Item 2')),
+    Card(child: Text('Item 3')),
+  ],
+)
+```
 
-| Method                           | Description                                 |
-| -------------------------------- | ------------------------------------------- |
-| `context.isStatusBarVisible`     | Check if status bar is visible              |
-| `context.isNavigationBarVisible` | Check if navigation bar is visible          |
-| `context.getAvailableHeight()`   | Get available height with safe area options |
+### 3. Layout por Orientação
 
-## 🎯 Best Practices
+```dart
+OrientationAwareLayout(
+  portrait: PortraitView(),
+  landscape: LandscapeView(),
+)
+```
 
-1. **Design Consistency**: Use the same base design dimensions across your app
-2. **Proportional Scaling**: Always use proportional methods for dimensions that should scale
-3. **Safe Areas**: Consider safe areas when designing for different devices
-4. **Testing**: Test on different screen sizes to ensure proper scaling
-5. **Performance**: The package is optimized for performance with minimal overhead
+### 4. Estratégias de Escala
 
-## 📱 Example
+```dart
+// Escala linear (comportamento original)
+final size = context.getProportionalSizeAdaptive(
+  100,
+  strategy: ScalingStrategy.linear,
+);
 
-Check out the complete example in the `example/` directory to see the package in action.
+// Escala adaptativa por dispositivo (recomendado)
+final size = context.getProportionalSizeAdaptive(
+  100,
+  strategy: ScalingStrategy.adaptive,
+);
 
-## 🤝 Contributing
+// Escala baseada em aspect ratio
+final size = context.getProportionalSizeAdaptive(
+  100,
+  strategy: ScalingStrategy.aspectRatio,
+);
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+// Escala Material Design
+final size = context.getProportionalSizeAdaptive(
+  100,
+  strategy: ScalingStrategy.material,
+);
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### 5. Configuração Avançada
 
-## 📄 License
+```dart
+// Configurar dimensões base
+ProportionalConfig.setBaseSize(Size(375, 812));
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+// Configurar por tipo de dispositivo
+ProportionalConfig.setBaseSizeForDevice(
+  DeviceType.tablet,
+  Size(768, 1024),
+);
 
-## 🙏 Acknowledgments
+// Configurar fator de escala
+ProportionalConfig.setScaleFactor(DeviceType.tablet, 1.2);
+```
 
-- Flutter team for the amazing framework
-- Material Design for design principles
-- Community contributors and users
+## 📚 Widgets Disponíveis
 
-## 📞 Support
+| Widget                   | Descrição                           |
+| ------------------------ | ----------------------------------- |
+| `ProportionalContainer`  | Container com dimensões automáticas |
+| `ProportionalText`       | Text com fontSize proporcional      |
+| `ProportionalSizedBox`   | SizedBox proporcional               |
+| `ProportionalPadding`    | Padding proporcional                |
+| `ProportionalIcon`       | Icon com tamanho proporcional       |
+| `AdaptiveLayout`         | Layout por tipo de dispositivo      |
+| `OrientationAwareLayout` | Layout por orientação               |
+| `ResponsiveGrid`         | Grid com colunas adaptativas        |
 
-If you encounter any issues or have questions, please:
+## 🔧 API Completa
 
-1. Check the [Issues](https://github.com/matheusperez/proportional-widget/issues) page
-2. Create a new issue with detailed information
-3. For quick questions, you can also reach out through the discussions
+### Detecção de Dispositivos
+
+```dart
+context.deviceType          // DeviceType enum
+context.breakpoint          // MaterialBreakpoint enum
+context.isTabletDevice      // bool
+context.isPhoneDevice       // bool
+context.isDesktopDevice     // bool
+context.deviceInfo          // Map com informações detalhadas
+```
+
+### Dimensionamento
+
+```dart
+context.getProportionalWidth(200)
+context.getProportionalHeight(100)
+context.getProportionalSize(150, isWidth: true)
+context.getWidthPercentage(0.5)  // 50% da largura
+context.getHeightPercentage(0.3) // 30% da altura
+```
+
+### Tipografia
+
+```dart
+context.getProportionalFontSize(16)
+context.getFontSizePercentage(0.02)
+context.getResponsiveFontSizeByBreakpoint(
+  small: 14,
+  medium: 16,
+  large: 18,
+)
+```
+
+### Espaçamento
+
+```dart
+context.getProportionalSpacing(16)
+context.getProportionalPadding(12)
+context.getProportionalMargin(8)
+context.getProportionalEdgeInsets(all: 16)
+context.getProportionalEdgeInsetsSymmetric(
+  horizontal: 16,
+  vertical: 8,
+)
+```
+
+### Estilização
+
+```dart
+context.getProportionalBorderRadius(8)
+context.getProportionalBorderRadiusAll(12)
+context.getProportionalIconSize(24)
+context.getProportionalBoxShadow(
+  dx: 0,
+  dy: 2,
+  blurRadius: 4,
+  color: Colors.black26,
+)
+```
+
+## 📊 Performance
+
+### Sistema de Cache
+
+```dart
+// Ver estatísticas
+final stats = ProportionalCache.statistics;
+print('Hit rate: ${stats['hitRate']}');
+print('Cache size: ${stats['size']}');
+
+// Limpar cache se necessário
+ProportionalCache.clear();
+
+// Desabilitar cache temporariamente
+ProportionalCache.disable();
+```
+
+### Logging
+
+```dart
+// Configurar níveis de log
+ProportionalLogger.setDebugMode(true);
+ProportionalLogger.setVerboseMode(true);
+
+// Logs são automaticamente removidos em release builds
+```
+
+## 🎯 Breakpoints Material Design 3
+
+| Breakpoint | Range         | Dispositivos                |
+| ---------- | ------------- | --------------------------- |
+| Compact    | < 600dp       | Phones                      |
+| Medium     | 600dp - 840dp | Tablets pequenos, Foldables |
+| Expanded   | > 840dp       | Tablets grandes, Desktops   |
+
+## 💡 Melhores Práticas
+
+1. **Use estratégia adaptativa** para melhor suporte a tablets
+2. **Prefira widgets proporcionais** para código mais limpo
+3. **Configure na inicialização** para comportamento consistente
+4. **Teste em diferentes dispositivos** e orientações
+5. **Use breakpoints Material Design 3** ao invés de valores hardcoded
+
+## 🔄 Migração da v1.0
+
+### Sem Breaking Changes!
+
+Todo código v1.0 continua funcionando perfeitamente:
+
+```dart
+// v1.0 - continua funcionando
+context.getProportionalWidth(200);
+context.isTablet; // ainda funciona, mas use context.deviceType
+
+// v2.0 - nova API recomendada
+ProportionalContainer(width: 200, child: ...);
+context.deviceType == DeviceType.tablet;
+```
+
+### Melhorias Opcionais
+
+```dart
+// Configurar estratégia (opcional)
+void main() {
+  ProportionalConfig.setDefaultStrategy(ScalingStrategy.adaptive);
+  runApp(MyApp());
+}
+```
+
+## 📱 Exemplo Completo
+
+Veja o [exemplo completo](example/lib/main.dart) no diretório `example/` para um app demonstrando todos os recursos.
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Por favor:
+
+1. Fork o repositório
+2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 🙏 Agradecimentos
+
+- Flutter team pelo framework incrível
+- Material Design team pelos guidelines
+- Comunidade Flutter pelos feedbacks e contribuições
 
 ---
 
-Made with ❤️ for the Flutter community
+**Made with ❤️ for the Flutter community**
+
+### 📞 Suporte
+
+- [Issues](https://github.com/matheusperez/proportional-widget/issues)
+- [Discussions](https://github.com/matheusperez/proportional-widget/discussions)
+- [Documentation](https://pub.dev/documentation/proportional_design/latest/)
